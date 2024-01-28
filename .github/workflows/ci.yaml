@@ -1,0 +1,75 @@
+name: ci
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, closed]
+    branches:
+      - main
+  push:
+    branches:
+      - main
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.21
+
+      - name: Run golanci Linter
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.55.2
+
+      - name: Run the Tests
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        run: |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+
+          # workaround for codeclimate test coverage tool error
+          # see https://github.com/codeclimate/test-reporter/issues/304#issuecomment-907436716
+          mkdir -p ./github.com/seinshah
+          ln -s $PWD ./github.com/seinshah/flattenhtml
+
+          ./cc-test-reporter before-build
+          go test -race -coverprofile c.out ./...
+          ./cc-test-reporter after-build --exit-code $?
+
+  security:
+    name: Security
+    needs: validate
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: ./...
+
+      - name: Running govulncheck
+        uses: Templum/govulncheck-action@v1.0.0
+        with:
+          go-version: 1.21
+          vulncheck-version: latest
+          package: ./...
+          fail-on-vuln: true
+
+  release:
+    name: Release
+    needs: security
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' || github.event.pull_request.merged == true)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: go-semantic-release/action@v1
+        with:
+          github-token: ${{ secrets.GH_TOKEN }}
+          changelog-file: CHANGELOG.md
+          allow-initial-development-versions: true

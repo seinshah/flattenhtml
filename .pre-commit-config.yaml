@@ -1,0 +1,32 @@
+exclude: ^vendor/.*|.idea/.*$
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-vcs-permalinks
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.55.2
+    hooks:
+      - id: golangci-lint
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+      - id: go-imports
+      - id: go-vet
+      - id: go-unit-tests
+      - id: go-generate
+      - id: go-mod-tidy
+      - id: go-mod-vendor
+  - repo: https://github.com/seinshah/pre-commit-golang
+    rev: v0.1.0
+    hooks:
+      - id: go-vulncheck
+      - id: go-nil-pointer-check
