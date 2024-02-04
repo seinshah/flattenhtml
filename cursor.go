@@ -18,18 +18,30 @@ type Cursor struct {
 // NewMultiCursor returns a new MultiCursor initiated by the NodeManager.
 // This holds all the configured flatteners that are used separately to
 // flatten the HTML tree.
+// To perform the variety of operations on the flattened documents, first you need
+// to select your desired flattener cursor using methods defined on MultiCursor.
 func NewMultiCursor(flatteners ...Flattener) *MultiCursor {
 	return &MultiCursor{
 		flatteners: flatteners,
 	}
 }
 
-// SelectFlattener returns a new Cursor with the selected flattener from the MultiCursor
+// First returns the first Cursor from the MultiCursor initiated by the NodeManager.
+// This Cursor will hold the reference to the first flattener you configured for
+// the NodeManager.Parse method.
+// If MultiCursor has no cursor, the result will be nil.
+func (m *MultiCursor) First() *Cursor {
+	if len(m.flatteners) == 0 {
+		return nil
+	}
+
+	return &Cursor{flattener: m.flatteners[0]}
+}
+
+// SelectCursor returns a new Cursor with the selected flattener from the MultiCursor
 // initiated by the NodeManager.
-// To perform the variety of operations on the flattened documents, first you need
-// to select your desired flattener cursor using this method.
 // If the given flattener is not found in the MultiCursor, it returns ErrNoFlattener.
-func (m *MultiCursor) SelectFlattener(flattener Flattener) (*Cursor, error) {
+func (m *MultiCursor) SelectCursor(flattener Flattener) (*Cursor, error) {
 	if flattener == nil {
 		return nil, ErrNoFlattener
 	}

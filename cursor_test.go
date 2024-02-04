@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMultiCursor_SelectFlattener(t *testing.T) {
+func TestMultiCursor_SelectCursor(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -46,7 +46,7 @@ func TestMultiCursor_SelectFlattener(t *testing.T) {
 
 			mc := flattenhtml.NewMultiCursor(tc.flatteners...)
 
-			cu, err := mc.SelectFlattener(tc.flattener)
+			cu, err := mc.SelectCursor(tc.flattener)
 
 			if tc.wantErr {
 				require.Error(t, err)
@@ -95,12 +95,9 @@ func TestCursor(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mc := flattenhtml.NewMultiCursor(tc.flattener)
-			cu, err := mc.SelectFlattener(tc.flattener)
+			cu := flattenhtml.NewMultiCursor(tc.flattener).First()
 
-			require.NoError(t, err)
 			require.NotNil(t, cu)
-
 			require.NotNil(t, cu.SelectNodes(tc.key))
 		})
 	}
