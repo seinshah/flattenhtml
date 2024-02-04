@@ -10,7 +10,8 @@ import (
 // It is used to iterate over the nodes that are flattened by a Flattener and
 // perform different operations using the methods that are defined on the NodeIterator.
 type NodeIterator struct {
-	nodes []*Node
+	nodes       []*Node
+	cursorIndex uint
 }
 
 // Node is a simple wrapper around *html.Node.
@@ -65,6 +66,40 @@ func (n *NodeIterator) Each(f func(node *Node)) {
 			f(node)
 		}
 	}
+}
+
+// First returns the first non-removed node in the NodeIterator.
+// If there is no non-removed node, it returns nil.
+func (n *NodeIterator) First() *Node {
+	for _, node := range n.nodes {
+		if !node.IsRemoved() {
+			return node
+		}
+	}
+
+	return nil
+}
+
+// Next iterates over the nodes in the NodeIterator and returns the next non-removed node.
+// It starts from the first element of the NodeIterator and proceed to the next item on each
+// call to Next. If there is no non-removed node, it returns nil.
+// Once received nil, must be considered as the end of the iteration.
+// Use Reset to start the iteration from the beginning.
+func (n *NodeIterator) Next() *Node {
+	for _, node := range n.nodes[n.cursorIndex:] {
+		if !node.IsRemoved() {
+			n.cursorIndex++
+
+			return node
+		}
+	}
+
+	return nil
+}
+
+// Reset resets the cursor index to the beginning of the NodeIterator.
+func (n *NodeIterator) Reset() {
+	n.cursorIndex = 0
 }
 
 // Filter filters the nodes in the NodeIterator using the given FilterOption.
@@ -231,4 +266,10 @@ func (n *Node) RemoveAttribute(key string) {
 	}
 
 	delete(n.attributes, key)
+}
+
+// HTMLNode returns the underlying *html.Node of the Node.
+// Any write operation on the *html.Node might corrupt the structure of the HTML tree.
+func (n *Node) HTMLNode() *html.Node {
+	return n.htmlNode
 }

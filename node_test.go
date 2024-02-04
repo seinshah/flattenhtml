@@ -42,6 +42,7 @@ func TestNodeIterator(t *testing.T) {
 	})
 
 	require.Equal(t, 1, filteredIterator.Len())
+	require.Equal(t, "div", filteredIterator.First().TagName())
 
 	orFilteredIterator := nodeIterator.FilterOr(
 		func(node *flattenhtml.Node) bool {
@@ -53,6 +54,11 @@ func TestNodeIterator(t *testing.T) {
 	)
 
 	require.Equal(t, 2, orFilteredIterator.Len())
+	require.Equal(t, "div", orFilteredIterator.Next().TagName())
+	require.Equal(t, "a", orFilteredIterator.Next().TagName())
+
+	orFilteredIterator.Reset()
+	require.Equal(t, "div", orFilteredIterator.Next().TagName())
 
 	andFilteredIterator := nodeIterator.FilterAnd(
 		func(node *flattenhtml.Node) bool {
@@ -102,6 +108,10 @@ func TestNode(t *testing.T) {
 	require.False(t, ok, "new-attr attribute doesn't exist")
 	require.Equal(t, "", attrVal, "new-attr attribute has empty value")
 	require.Len(t, node.Attributes(), 1, "expected number of attributes after removing new-attr")
+
+	hn := node.HTMLNode()
+	require.NotNil(t, hn, "expected *html.Node")
+	require.Equal(t, node.TagName(), hn.Data, "expected tag name")
 }
 
 func TestNode_Remove(t *testing.T) {
