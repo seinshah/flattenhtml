@@ -1,3 +1,6 @@
+// Package flattenhtml provides a way to flatten the HTML tree structure and
+// then use the flattened data to do different kinds of lookups.
+//
 // Go provides [html] package that bear the heavy load of parsing HTML.
 // However, this package results in a tree structure. Although it is generic
 // and can be utilized for any traversal purposes, it is not very convenient
@@ -21,20 +24,20 @@
 // AttributeFlattener to flatten the nodes based on their attributes. The same as
 // before, the HTML tree will be traversed only once to utilize all flatteners.
 //
-//     html := "<html><head></head><body><div><p></p></div></body></html>"
-//	   flatteners := []flattenhtml.Flattener{flattenhtml.TagFlattener, ...}
-//     nm := flattenhtml.NewNodeManagerFromReader(strings.NewReader(html))
-//	   mc := nm.Parse(flatteners...)
+//	    html := "<html><head></head><body><div><p></p></div></body></html>"
+//		   flatteners := []flattenhtml.Flattener{flattenhtml.TagFlattener, ...}
+//	    nm := flattenhtml.NewNodeManagerFromReader(strings.NewReader(html))
+//		   mc := nm.Parse(flatteners...)
 //
 // Once the flattening process is done, you will have a *flattenhtml.MultiCursor
 // Which holds a pointer to all the flatteners. Now, before proceeding, you need
 // to select a single flattener of your choice, to continue the lookup process.
 //
-//     tagFlattener := mc.SelectFlattener(&flattenhtml.TagFlattener{})
+//	tagFlattener := mc.SelectFlattener(&flattenhtml.TagFlattener{})
 //
 // Now, you can get nodes of the same tag name using the following statement:
 //
-//     nodes := tagFlattener.SelectNodes("div")
+//	nodes := tagFlattener.SelectNodes("div")
 //
 // This will return a *flattenhtml.NodeIterator that can be used to iterate over
 // the nodes that are selected by the given key. In this case, all the nodes that
@@ -45,5 +48,4 @@
 //
 // [html]: https://pkg.go.dev/golang.org/x/net/html
 // [golang.org/x/net/html]: https://pkg.go.dev/golang.org/x/net/html
-
 package flattenhtml
