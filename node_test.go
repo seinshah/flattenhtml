@@ -184,3 +184,102 @@ func TestNode_Remove(t *testing.T) {
 	require.Equal(t, 0, nodeIterator.FilterOr(fnTagName, fnAttrClass).Len())
 	require.Equal(t, 0, nodeIterator.FilterAnd(fnTagName, fnAttrClass).Len())
 }
+
+func TestNode_AddNewNode(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name      string
+		operation func(node *flattenhtml.Node) *flattenhtml.Node
+		validate  func(baseNode, newNode *flattenhtml.Node) bool
+	}{
+		{
+			name: "append child to a node",
+			operation: func(node *flattenhtml.Node) *flattenhtml.Node {
+				return node.AppendChild(
+					flattenhtml.NodeTypeElement,
+					"span",
+					nil,
+				)
+			},
+			validate: func(baseNode, newNode *flattenhtml.Node) bool {
+				return baseNode.HTMLNode().LastChild == newNode.HTMLNode() &&
+					newNode.HTMLNode().Parent == baseNode.HTMLNode()
+			},
+		},
+		{
+			name: "prepend child to a node",
+			operation: func(node *flattenhtml.Node) *flattenhtml.Node {
+				return node.PrependChild(
+					flattenhtml.NodeTypeElement,
+					"span",
+					nil,
+				)
+			},
+			validate: func(baseNode, newNode *flattenhtml.Node) bool {
+				return baseNode.HTMLNode().FirstChild == newNode.HTMLNode() &&
+					newNode.HTMLNode().Parent == baseNode.HTMLNode()
+			},
+		},
+		{
+			name: "append sibling to a node",
+			operation: func(node *flattenhtml.Node) *flattenhtml.Node {
+				return node.AppendSibling(
+					flattenhtml.NodeTypeElement,
+					"span",
+					nil,
+				)
+			},
+			validate: func(baseNode, newNode *flattenhtml.Node) bool {
+				return baseNode.HTMLNode().NextSibling == newNode.HTMLNode() &&
+					newNode.HTMLNode().PrevSibling == baseNode.HTMLNode() &&
+					baseNode.HTMLNode().Parent == newNode.HTMLNode().Parent
+			},
+		},
+		{
+			name: "prepend sibling to a node",
+			operation: func(node *flattenhtml.Node) *flattenhtml.Node {
+				return node.PrependSibling(
+					flattenhtml.NodeTypeElement,
+					"span",
+					nil,
+				)
+			},
+			validate: func(baseNode, newNode *flattenhtml.Node) bool {
+				return baseNode.HTMLNode().PrevSibling == newNode.HTMLNode() &&
+					newNode.HTMLNode().NextSibling == baseNode.HTMLNode() &&
+					baseNode.HTMLNode().Parent == newNode.HTMLNode().Parent
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			div := &html.Node{
+				Data: "div",
+				Type: html.ElementNode,
+			}
+
+			a := &html.Node{
+				Data: "a",
+				Type: html.ElementNode,
+			}
+
+			label := &html.Node{
+				Data: "label",
+				Type: html.ElementNode,
+			}
+
+			div.AppendChild(a)
+			a.AppendChild(label)
+
+			baseNode := flattenhtml.NewNode(a)
+
+			newNode := tc.operation(baseNode)
+
+			require.True(t, tc.validate(baseNode, newNode))
+		})
+	}
+}

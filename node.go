@@ -4,7 +4,10 @@ import (
 	"errors"
 
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 )
+
+type NodeType html.NodeType
 
 // NodeIterator is a simple iterator that can iterate over a slice of *Node.
 // It is used to iterate over the nodes that are flattened by a Flattener and
@@ -27,6 +30,11 @@ type Node struct {
 // The boolean value is true if the given *Node should be included in the
 // NodeIterator and false otherwise.
 type FilterOption func(node *Node) bool
+
+const (
+	NodeTypeElement NodeType = NodeType(html.ElementNode)
+	NodeTypeText    NodeType = NodeType(html.TextNode)
+)
 
 var ErrParentlessNode = errors.New("node with no parent cannot be removed")
 
@@ -272,4 +280,111 @@ func (n *Node) RemoveAttribute(key string) {
 // Any write operation on the *html.Node might corrupt the structure of the HTML tree.
 func (n *Node) HTMLNode() *html.Node {
 	return n.htmlNode
+}
+
+// AppendChild appends a new child to the Node.
+// The new child will be added to the end of the children list of the Node.
+// It returns the newly added Node. tagNameOrContent can be used as a tag name
+// if nodeType is NodeTypeElement, or as a content if nodeType is NodeTypeText.
+// The newly added node in this approach will be available if you render the NodeManager.
+// However, the newly added node will not be accessible using NodeIterator or Cursor.
+// To add the new node to the cycle, you can use MultiCursor.RegisterNewNode method.
+func (n *Node) AppendChild(
+	nodeType NodeType,
+	tagNameOrContent string,
+	attributes map[string]string,
+) *Node {
+	newNode := prepareNewNode(nodeType, tagNameOrContent, attributes)
+
+	n.htmlNode.AppendChild(newNode.HTMLNode())
+
+	return newNode
+}
+
+// PrependChild prepends a new child to the Node.
+// The new child will be added to the beginning of the children list of the Node.
+// It returns the newly added Node. tagNameOrContent can be used as a tag name
+// if nodeType is NodeTypeElement, or as a content if nodeType is NodeTypeText.
+// The newly added node in this approach will be available if you render the NodeManager.
+// However, the newly added node will not be accessible using NodeIterator or Cursor.
+// To add the new node to the cycle, you can use MultiCursor.RegisterNewNode method.
+func (n *Node) PrependChild(
+	nodeType NodeType,
+	tagNameOrContent string,
+	attributes map[string]string,
+) *Node {
+	newNode := prepareNewNode(nodeType, tagNameOrContent, attributes)
+
+	if n.htmlNode.FirstChild == nil {
+		n.htmlNode.AppendChild(newNode.HTMLNode())
+	} else {
+		n.htmlNode.InsertBefore(newNode.HTMLNode(), n.htmlNode.FirstChild)
+	}
+
+	return newNode
+}
+
+// AppendSibling appends a new sibling to the Node.
+// The new node will be the next node after this node in the parent's children list.
+// It returns the newly added Node. tagNameOrContent can be used as a tag name
+// if nodeType is NodeTypeElement, or as a content if nodeType is NodeTypeText.
+// The newly added node in this approach will be available if you render the NodeManager.
+// However, the newly added node will not be accessible using NodeIterator or Cursor.
+// To add the new node to the cycle, you can use MultiCursor.RegisterNewNode method.
+func (n *Node) AppendSibling(
+	nodeType NodeType,
+	tagNameOrContent string,
+	attributes map[string]string,
+) *Node {
+	newNode := prepareNewNode(nodeType, tagNameOrContent, attributes)
+
+	n.htmlNode.Parent.InsertBefore(newNode.HTMLNode(), n.htmlNode.NextSibling)
+
+	return newNode
+}
+
+// PrependSibling prepends a new sibling to the Node.
+// The new node will be the previous node before this node in the parent's children list.
+// It returns the newly added Node. tagNameOrContent can be used as a tag name
+// if nodeType is NodeTypeElement, or as a content if nodeType is NodeTypeText.
+// The newly added node in this approach will be available if you render the NodeManager.
+// However, the newly added node will not be accessible using NodeIterator or Cursor.
+// To add the new node to the cycle, you can use MultiCursor.RegisterNewNode method.
+func (n *Node) PrependSibling(
+	nodeType NodeType,
+	tagNameOrContent string,
+	attributes map[string]string,
+) *Node {
+	newNode := prepareNewNode(nodeType, tagNameOrContent, attributes)
+
+	n.htmlNode.Parent.InsertBefore(newNode.HTMLNode(), n.htmlNode)
+
+	return newNode
+}
+
+// prepareNewNode creates a new Node with the given nodeType, tagNameOrContent, and attributes.
+func prepareNewNode(
+	nodeType NodeType,
+	tagNameOrContent string,
+	attributes map[string]string,
+) *Node {
+	htmlAttrs := make([]html.Attribute, 0, len(attributes))
+
+	for key, value := range attributes {
+		htmlAttrs = append(htmlAttrs, html.Attribute{
+			Key: key,
+			Val: value,
+		})
+	}
+
+	htmlNode := &html.Node{
+		Type:     html.NodeType(nodeType),
+		DataAtom: atom.Lookup([]byte(tagNameOrContent)),
+		Data:     tagNameOrContent,
+		Attr:     htmlAttrs,
+	}
+
+	newNode := NewNode(htmlNode)
+
+	return newNode
 }
