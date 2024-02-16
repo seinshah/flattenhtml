@@ -34,6 +34,7 @@ func TestNodeIterator(t *testing.T) {
 
 	nodeIterator.Each(func(node *flattenhtml.Node) {
 		require.Equal(t, nodes[activeIndex].TagName(), node.TagName())
+
 		activeIndex++
 	})
 

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:paralleltest
 func TestIntegration(t *testing.T) {
 	rawHTML := `<html><body><div><p class="p1">hello</p><p class="p2">world</p></div></body></html>`
 	expectedRawHTML := `<html><head></head><body><div><p class="p1">hello</p></div></body></html>`

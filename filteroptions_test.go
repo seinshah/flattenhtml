@@ -30,9 +30,7 @@ func TestWithTag(t *testing.T) {
 		},
 	}
 
-	for i := range testCases {
-		tc := testCases[i]
-
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -72,9 +70,7 @@ func TestWithAttribute(t *testing.T) {
 		},
 	}
 
-	for i := range testCases {
-		tc := testCases[i]
-
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -123,9 +119,7 @@ func TestWithAttributeValueAs(t *testing.T) {
 		},
 	}
 
-	for i := range testCases {
-		tc := testCases[i]
-
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

@@ -1,7 +1,7 @@
 package flattenhtml_test
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/seinshah/flattenhtml"
 	"golang.org/x/net/html"
@@ -15,7 +15,7 @@ type sampleFlattener struct {
 
 var _ flattenhtml.Flattener = (*sampleFlattener)(nil)
 
-var errSample = fmt.Errorf("sample error")
+var errSample = errors.New("sample error")
 
 func (s *sampleFlattener) Flatten(_ *html.Node) error {
 	if s.withErr {
