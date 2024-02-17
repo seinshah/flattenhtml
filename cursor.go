@@ -98,3 +98,11 @@ func (c *Cursor) SelectNodes(key string) *NodeIterator {
 func (c *Cursor) Len() int {
 	return c.flattener.Len()
 }
+
+// RegisterNewNode is used to add a newly and manually added nodes by the user to the cycle.
+// It calls flatten method of the cursor's flatteners by giving the Node's underlying html.Node.
+// New node can only be accessed by the NodeIterator and Cursor, if it is added to the cycle
+// using this method.
+func (c *Cursor) RegisterNewNode(node *Node) error {
+	return c.flattener.Flatten(node.HTMLNode())
+}

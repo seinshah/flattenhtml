@@ -153,3 +153,48 @@ func TestCursor(t *testing.T) {
 		})
 	}
 }
+
+func TestCursor_RegisterNewNode(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name      string
+		flattener flattenhtml.Flattener
+		wantErr   bool
+		errType   error
+	}{
+		{
+			name:      "with flattener error",
+			flattener: &sampleFlattener{withErr: true},
+			wantErr:   true,
+			errType:   errSample,
+		},
+		{
+			name:      "with successful flattener",
+			flattener: &sampleFlattener{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cursor := flattenhtml.NewMultiCursor(tc.flattener).First()
+
+			err := cursor.RegisterNewNode(flattenhtml.NewNode(&html.Node{}))
+
+			if tc.wantErr {
+				require.Error(t, err)
+
+				if tc.errType != nil {
+					require.IsType(t, tc.errType, err)
+				}
+
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, 1, tc.flattener.Len())
+		})
+	}
+}
