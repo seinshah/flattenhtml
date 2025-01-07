@@ -3,7 +3,7 @@ module github.com/seinshah/flattenhtml
 go 1.22
 
 require (
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.30.0
 )
 
