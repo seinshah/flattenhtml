@@ -21,7 +21,7 @@ jobs:
     if: (github.event_name == 'push' || github.event.pull_request.action != 'closed' || github.event.pull_request.merged == true)
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: ${{env.GO_VERSION}}
 
