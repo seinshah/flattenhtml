@@ -1,12 +1,10 @@
 module github.com/seinshah/flattenhtml
 
-go 1.23.0
-
-toolchain go1.24.2
+go 1.26.0
 
 require (
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/net v0.39.0
+	golang.org/x/net v0.61.0
 )
 
 require (
